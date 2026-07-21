@@ -250,3 +250,54 @@ func TestOrderByMixed(t *testing.T) {
 		t.Errorf("got %q, want %q", got, want)
 	}
 }
+
+func TestExpandSimple(t *testing.T) {
+	got := New().Expand("Orders", nil).Build()
+	want := "$expand=Orders"
+	if got != want {
+		t.Errorf("got %q, want %q", got, want)
+	}
+}
+
+func TestExpandNested(t *testing.T) {
+	got := New().Expand("Orders", func(sq *QueryBuilder) {
+		sq.Select("id", "price").Top(5)
+	}).Build()
+	want := "$expand=Orders($select=id,price;$top=5)"
+	if got != want {
+		t.Errorf("got %q, want %q", got, want)
+	}
+}
+
+func TestExpandMultiple(t *testing.T) {
+	got := New().
+		Expand("Orders", nil).
+		Expand("Profile", func(sq *QueryBuilder) {
+			sq.Select("name", "avatar")
+		}).
+		Build()
+	want := "$expand=Orders,Profile($select=name,avatar)"
+	if got != want {
+		t.Errorf("got %q, want %q", got, want)
+	}
+}
+
+func TestExpandDeep(t *testing.T) {
+	got := New().Expand("Orders", func(sq *QueryBuilder) {
+		sq.Expand("Profile", nil)
+	}).Build()
+	want := "$expand=Orders($expand=Profile)"
+	if got != want {
+		t.Errorf("got %q, want %q", got, want)
+	}
+}
+
+func TestExpandDeepWithSelect(t *testing.T) {
+	got := New().Expand("Orders", func(sq *QueryBuilder) {
+		sq.Select("id").Expand("Profile", nil)
+	}).Build()
+	want := "$expand=Orders($select=id;$expand=Profile)"
+	if got != want {
+		t.Errorf("got %q, want %q", got, want)
+	}
+}

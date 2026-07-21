@@ -10,9 +10,15 @@ type orderByClause struct {
 	field string
 	desc  bool
 }
+
+type expandClause struct {
+	property string
+	query    *QueryBuilder
+}
 type QueryBuilder struct {
 	selects  []string
 	filters  []filterCond
+	expands  []expandClause
 	orderBys []orderByClause
 	search   string
 	top      *int
@@ -83,10 +89,37 @@ func (qb *QueryBuilder) OrderByDesc(fields ...string) *QueryBuilder {
 	return qb
 }
 
+func (qb *QueryBuilder) Expand(prop string, nested func(*QueryBuilder)) *QueryBuilder {
+	ec := expandClause{property: prop}
+	if nested != nil {
+		sq := New()
+		nested(sq)
+		ec.query = sq
+	}
+	qb.expands = append(qb.expands, ec)
+	return qb
+}
+
 func (qb *QueryBuilder) Build() string {
 	var parts []string
 	if len(qb.selects) > 0 {
 		parts = append(parts, "$select="+strings.Join(qb.selects, ","))
+	}
+	if len(qb.expands) > 0 {
+		var items []string
+		for _, e := range qb.expands {
+			if e.query != nil {
+				nested := e.query.Build()
+				if nested != "" {
+					items = append(items, e.property+"("+strings.ReplaceAll(nested, "&", ";")+")")
+				} else {
+					items = append(items, e.property)
+				}
+			} else {
+				items = append(items, e.property)
+			}
+		}
+		parts = append(parts, "$expand="+strings.Join(items, ","))
 	}
 	if len(qb.filters) > 0 {
 		var exprs []string
