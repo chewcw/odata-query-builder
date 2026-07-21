@@ -379,7 +379,7 @@ func TestFilterEmptyField(t *testing.T) {
 	}
 }
 
-func TestNegativeTopPanics(t *testing.T) {
+func TestNegativeOnePanics(t *testing.T) {
 	got := New().Top(-1).Build()
 	want := "$top=-1"
 	if got != want {
