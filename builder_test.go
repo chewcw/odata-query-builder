@@ -1,4 +1,4 @@
-package odata
+package odataqb
 
 import "testing"
 
