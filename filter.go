@@ -78,7 +78,7 @@ func (fb *FilterBuilder) Contains(value string) *QueryBuilder {
 	fb.qb.filters = append(fb.qb.filters, filterCond{
 		field:    fb.field,
 		operator: "contains",
-		value:    "'" + value + "'",
+		value:    formatValue(value),
 		funcOp:   true,
 		logic:    fb.logic,
 		negated:  fb.negated,
@@ -90,7 +90,7 @@ func (fb *FilterBuilder) StartsWith(value string) *QueryBuilder {
 	fb.qb.filters = append(fb.qb.filters, filterCond{
 		field:    fb.field,
 		operator: "startswith",
-		value:    "'" + value + "'",
+		value:    formatValue(value),
 		funcOp:   true,
 		logic:    fb.logic,
 		negated:  fb.negated,
@@ -102,7 +102,7 @@ func (fb *FilterBuilder) EndsWith(value string) *QueryBuilder {
 	fb.qb.filters = append(fb.qb.filters, filterCond{
 		field:    fb.field,
 		operator: "endswith",
-		value:    "'" + value + "'",
+		value:    formatValue(value),
 		funcOp:   true,
 		logic:    fb.logic,
 		negated:  fb.negated,
