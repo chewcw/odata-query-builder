@@ -218,3 +218,35 @@ func TestFullQuery(t *testing.T) {
 		t.Errorf("got %q, want %q", got, want)
 	}
 }
+
+func TestOrderBy(t *testing.T) {
+	got := New().OrderBy("name").Build()
+	want := "$orderby=name"
+	if got != want {
+		t.Errorf("got %q, want %q", got, want)
+	}
+}
+
+func TestOrderByMultiple(t *testing.T) {
+	got := New().OrderBy("name", "age").Build()
+	want := "$orderby=name,age"
+	if got != want {
+		t.Errorf("got %q, want %q", got, want)
+	}
+}
+
+func TestOrderByDesc(t *testing.T) {
+	got := New().OrderByDesc("created").Build()
+	want := "$orderby=created desc"
+	if got != want {
+		t.Errorf("got %q, want %q", got, want)
+	}
+}
+
+func TestOrderByMixed(t *testing.T) {
+	got := New().OrderBy("name").OrderByDesc("created").Build()
+	want := "$orderby=name,created desc"
+	if got != want {
+		t.Errorf("got %q, want %q", got, want)
+	}
+}

@@ -5,15 +5,20 @@ import (
 	"strings"
 )
 
-type QueryBuilder struct {
-	selects []string
-	filters []filterCond
-	search  string
-	top     *int
-	skip    *int
-	count   *bool
-}
 
+type orderByClause struct {
+	field string
+	desc  bool
+}
+type QueryBuilder struct {
+	selects  []string
+	filters  []filterCond
+	orderBys []orderByClause
+	search   string
+	top      *int
+	skip     *int
+	count    *bool
+}
 func New() *QueryBuilder {
 	return &QueryBuilder{}
 }
@@ -64,6 +69,20 @@ func (qb *QueryBuilder) Search(term string) *QueryBuilder {
 	return qb
 }
 
+func (qb *QueryBuilder) OrderBy(fields ...string) *QueryBuilder {
+	for _, f := range fields {
+		qb.orderBys = append(qb.orderBys, orderByClause{field: f})
+	}
+	return qb
+}
+
+func (qb *QueryBuilder) OrderByDesc(fields ...string) *QueryBuilder {
+	for _, f := range fields {
+		qb.orderBys = append(qb.orderBys, orderByClause{field: f, desc: true})
+	}
+	return qb
+}
+
 func (qb *QueryBuilder) Build() string {
 	var parts []string
 	if len(qb.selects) > 0 {
@@ -82,6 +101,17 @@ func (qb *QueryBuilder) Build() string {
 	}
 	if qb.search != "" {
 		parts = append(parts, "$search="+qb.search)
+	}
+	if len(qb.orderBys) > 0 {
+		var items []string
+		for _, o := range qb.orderBys {
+			if o.desc {
+				items = append(items, o.field+" desc")
+			} else {
+				items = append(items, o.field)
+			}
+		}
+		parts = append(parts, "$orderby="+strings.Join(items, ","))
 	}
 	if qb.top != nil {
 		parts = append(parts, fmt.Sprintf("$top=%d", *qb.top))
