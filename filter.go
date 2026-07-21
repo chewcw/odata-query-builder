@@ -22,10 +22,15 @@ type FilterBuilder struct {
 }
 
 func (fb *FilterBuilder) addCond(operator string, value any) *QueryBuilder {
+	formatted := formatValue(value)
+	if formatted == "" {
+		// No op, early return
+		return fb.qb
+	}
 	fb.qb.filters = append(fb.qb.filters, filterCond{
 		field:    fb.field,
 		operator: operator,
-		value:    formatValue(value),
+		value:    formatted,
 		logic:    fb.logic,
 		negated:  fb.negated,
 	})
@@ -37,15 +42,17 @@ func (fb *FilterBuilder) Not() *FilterBuilder {
 	return fb
 }
 
-func (fb *FilterBuilder) Eq(value any) *QueryBuilder  { return fb.addCond("eq", value) }
-func (fb *FilterBuilder) Ne(value any) *QueryBuilder  { return fb.addCond("ne", value) }
-func (fb *FilterBuilder) Gt(value any) *QueryBuilder  { return fb.addCond("gt", value) }
-func (fb *FilterBuilder) Ge(value any) *QueryBuilder  { return fb.addCond("ge", value) }
-func (fb *FilterBuilder) Lt(value any) *QueryBuilder  { return fb.addCond("lt", value) }
-func (fb *FilterBuilder) Le(value any) *QueryBuilder  { return fb.addCond("le", value) }
+func (fb *FilterBuilder) Eq(value any) *QueryBuilder { return fb.addCond("eq", value) }
+func (fb *FilterBuilder) Ne(value any) *QueryBuilder { return fb.addCond("ne", value) }
+func (fb *FilterBuilder) Gt(value any) *QueryBuilder { return fb.addCond("gt", value) }
+func (fb *FilterBuilder) Ge(value any) *QueryBuilder { return fb.addCond("ge", value) }
+func (fb *FilterBuilder) Lt(value any) *QueryBuilder { return fb.addCond("lt", value) }
+func (fb *FilterBuilder) Le(value any) *QueryBuilder { return fb.addCond("le", value) }
 
 func formatValue(value any) string {
 	switch v := value.(type) {
+	case nil:
+		return ""
 	case string:
 		escaped := strings.ReplaceAll(v, "'", "''")
 		return fmt.Sprintf("'%s'", escaped)
@@ -113,7 +120,13 @@ func (fb *FilterBuilder) EndsWith(value string) *QueryBuilder {
 func (fb *FilterBuilder) In(values ...any) *QueryBuilder {
 	var formatted []string
 	for _, v := range values {
-		formatted = append(formatted, formatValue(v))
+		f := formatValue(v)
+		if f != "" {
+			formatted = append(formatted, f)
+		}
+	}
+	if len(formatted) == 0 {
+		return fb.qb
 	}
 	fb.qb.filters = append(fb.qb.filters, filterCond{
 		field:    fb.field,

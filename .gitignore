@@ -45,3 +45,7 @@ __debug_bin
 /bin/
 /out/
 /dist/
+
+# Tool caches
+.atl/
+.codegraph/
