@@ -138,7 +138,7 @@ func (qb *QueryBuilder) build(sep string) string {
 		parts = append(parts, "$filter="+strings.Join(exprs, " "))
 	}
 	if qb.search != "" {
-		parts = append(parts, "$search="+url.QueryEscape(qb.search))
+		parts = append(parts, "$search="+strings.ReplaceAll(url.QueryEscape(qb.search), "+", "%20"))
 	}
 	if len(qb.orderBys) > 0 {
 		var items []string
