@@ -1,10 +1,17 @@
 package odata
 
-import "strings"
+import (
+	"fmt"
+	"strings"
+)
 
 type QueryBuilder struct {
 	selects []string
 	filters []filterCond
+	search  string
+	top     *int
+	skip    *int
+	count   *bool
 }
 
 func New() *QueryBuilder {
@@ -36,6 +43,27 @@ func (qb *QueryBuilder) OrFilter(field string) *FilterBuilder {
 	}
 }
 
+func (qb *QueryBuilder) Top(n int) *QueryBuilder {
+	qb.top = &n
+	return qb
+}
+
+func (qb *QueryBuilder) Skip(n int) *QueryBuilder {
+	qb.skip = &n
+	return qb
+}
+
+func (qb *QueryBuilder) Count() *QueryBuilder {
+	t := true
+	qb.count = &t
+	return qb
+}
+
+func (qb *QueryBuilder) Search(term string) *QueryBuilder {
+	qb.search = term
+	return qb
+}
+
 func (qb *QueryBuilder) Build() string {
 	var parts []string
 	if len(qb.selects) > 0 {
@@ -51,6 +79,18 @@ func (qb *QueryBuilder) Build() string {
 			exprs = append(exprs, expr)
 		}
 		parts = append(parts, "$filter="+strings.Join(exprs, " "))
+	}
+	if qb.search != "" {
+		parts = append(parts, "$search="+qb.search)
+	}
+	if qb.top != nil {
+		parts = append(parts, fmt.Sprintf("$top=%d", *qb.top))
+	}
+	if qb.skip != nil {
+		parts = append(parts, fmt.Sprintf("$skip=%d", *qb.skip))
+	}
+	if qb.count != nil && *qb.count {
+		parts = append(parts, "$count=true")
 	}
 	return strings.Join(parts, "&")
 }

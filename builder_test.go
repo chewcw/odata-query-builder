@@ -166,3 +166,55 @@ func TestFilterHas(t *testing.T) {
 		t.Errorf("got %q, want %q", got, want)
 	}
 }
+
+func TestTop(t *testing.T) {
+	got := New().Top(10).Build()
+	want := "$top=10"
+	if got != want {
+		t.Errorf("got %q, want %q", got, want)
+	}
+}
+
+func TestSkip(t *testing.T) {
+	got := New().Skip(20).Build()
+	want := "$skip=20"
+	if got != want {
+		t.Errorf("got %q, want %q", got, want)
+	}
+}
+
+func TestCount(t *testing.T) {
+	got := New().Count().Build()
+	want := "$count=true"
+	if got != want {
+		t.Errorf("got %q, want %q", got, want)
+	}
+}
+
+func TestSearch(t *testing.T) {
+	got := New().Search("john").Build()
+	want := "$search=john"
+	if got != want {
+		t.Errorf("got %q, want %q", got, want)
+	}
+}
+
+func TestPagination(t *testing.T) {
+	got := New().Top(10).Skip(20).Build()
+	want := "$top=10&$skip=20"
+	if got != want {
+		t.Errorf("got %q, want %q", got, want)
+	}
+}
+
+func TestFullQuery(t *testing.T) {
+	got := New().
+		Select("name", "email").
+		Filter("status").Eq("active").
+		Top(10).
+		Build()
+	want := "$select=name,email&$filter=status eq 'active'&$top=10"
+	if got != want {
+		t.Errorf("got %q, want %q", got, want)
+	}
+}
