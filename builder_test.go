@@ -118,3 +118,51 @@ func TestSelectAndFilterCombined(t *testing.T) {
 		t.Errorf("got %q, want %q", got, want)
 	}
 }
+
+func TestFilterContains(t *testing.T) {
+	got := New().Filter("name").Contains("john").Build()
+	want := "$filter=contains(name, 'john')"
+	if got != want {
+		t.Errorf("got %q, want %q", got, want)
+	}
+}
+
+func TestFilterStartsWith(t *testing.T) {
+	got := New().Filter("name").StartsWith("A").Build()
+	want := "$filter=startswith(name, 'A')"
+	if got != want {
+		t.Errorf("got %q, want %q", got, want)
+	}
+}
+
+func TestFilterEndsWith(t *testing.T) {
+	got := New().Filter("email").EndsWith(".com").Build()
+	want := "$filter=endswith(email, '.com')"
+	if got != want {
+		t.Errorf("got %q, want %q", got, want)
+	}
+}
+
+func TestFilterIn(t *testing.T) {
+	got := New().Filter("status").In("active", "pending").Build()
+	want := "$filter=status in ('active', 'pending')"
+	if got != want {
+		t.Errorf("got %q, want %q", got, want)
+	}
+}
+
+func TestFilterInNumbers(t *testing.T) {
+	got := New().Filter("id").In(1, 2, 3).Build()
+	want := "$filter=id in (1, 2, 3)"
+	if got != want {
+		t.Errorf("got %q, want %q", got, want)
+	}
+}
+
+func TestFilterHas(t *testing.T) {
+	got := New().Filter("style").Has("Sales.Color'Yellow'").Build()
+	want := "$filter=style has Sales.Color'Yellow'"
+	if got != want {
+		t.Errorf("got %q, want %q", got, want)
+	}
+}

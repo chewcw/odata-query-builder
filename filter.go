@@ -11,6 +11,7 @@ type filterCond struct {
 	value    string // pre-formatted (quoted if string)
 	logic    string // "and" or "or"
 	negated  bool
+	funcOp   bool // true for contains/startswith/endswith: serialize as op(field, value)
 }
 
 type FilterBuilder struct {
@@ -56,9 +57,81 @@ func formatValue(value any) string {
 }
 
 func formatFilterCond(c filterCond) string {
-	expr := fmt.Sprintf("%s %s %s", c.field, c.operator, c.value)
+	var expr string
+	switch {
+	case c.funcOp:
+		expr = fmt.Sprintf("%s(%s, %s)", c.operator, c.field, c.value)
+	case c.operator == "in":
+		expr = fmt.Sprintf("%s in %s", c.field, c.value)
+	case c.operator == "has":
+		expr = fmt.Sprintf("%s has %s", c.field, c.value)
+	default:
+		expr = fmt.Sprintf("%s %s %s", c.field, c.operator, c.value)
+	}
 	if c.negated {
 		expr = fmt.Sprintf("not (%s)", expr)
 	}
 	return expr
+}
+
+func (fb *FilterBuilder) Contains(value string) *QueryBuilder {
+	fb.qb.filters = append(fb.qb.filters, filterCond{
+		field:    fb.field,
+		operator: "contains",
+		value:    "'" + value + "'",
+		funcOp:   true,
+		logic:    fb.logic,
+		negated:  fb.negated,
+	})
+	return fb.qb
+}
+
+func (fb *FilterBuilder) StartsWith(value string) *QueryBuilder {
+	fb.qb.filters = append(fb.qb.filters, filterCond{
+		field:    fb.field,
+		operator: "startswith",
+		value:    "'" + value + "'",
+		funcOp:   true,
+		logic:    fb.logic,
+		negated:  fb.negated,
+	})
+	return fb.qb
+}
+
+func (fb *FilterBuilder) EndsWith(value string) *QueryBuilder {
+	fb.qb.filters = append(fb.qb.filters, filterCond{
+		field:    fb.field,
+		operator: "endswith",
+		value:    "'" + value + "'",
+		funcOp:   true,
+		logic:    fb.logic,
+		negated:  fb.negated,
+	})
+	return fb.qb
+}
+
+func (fb *FilterBuilder) In(values ...any) *QueryBuilder {
+	var formatted []string
+	for _, v := range values {
+		formatted = append(formatted, formatValue(v))
+	}
+	fb.qb.filters = append(fb.qb.filters, filterCond{
+		field:    fb.field,
+		operator: "in",
+		value:    "(" + strings.Join(formatted, ", ") + ")",
+		logic:    fb.logic,
+		negated:  fb.negated,
+	})
+	return fb.qb
+}
+
+func (fb *FilterBuilder) Has(value string) *QueryBuilder {
+	fb.qb.filters = append(fb.qb.filters, filterCond{
+		field:    fb.field,
+		operator: "has",
+		value:    value, // raw, no quoting
+		logic:    fb.logic,
+		negated:  fb.negated,
+	})
+	return fb.qb
 }
