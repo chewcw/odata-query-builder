@@ -34,6 +34,7 @@ func (fb *FilterBuilder) addCond(operator string, value any) *QueryBuilder {
 		logic:    fb.logic,
 		negated:  fb.negated,
 	})
+	fb.negated = false
 	return fb.qb
 }
 
@@ -90,6 +91,7 @@ func (fb *FilterBuilder) Contains(value string) *QueryBuilder {
 		logic:    fb.logic,
 		negated:  fb.negated,
 	})
+	fb.negated = false
 	return fb.qb
 }
 
@@ -102,6 +104,7 @@ func (fb *FilterBuilder) StartsWith(value string) *QueryBuilder {
 		logic:    fb.logic,
 		negated:  fb.negated,
 	})
+	fb.negated = false
 	return fb.qb
 }
 
@@ -114,6 +117,7 @@ func (fb *FilterBuilder) EndsWith(value string) *QueryBuilder {
 		logic:    fb.logic,
 		negated:  fb.negated,
 	})
+	fb.negated = false
 	return fb.qb
 }
 
@@ -135,10 +139,14 @@ func (fb *FilterBuilder) In(values ...any) *QueryBuilder {
 		logic:    fb.logic,
 		negated:  fb.negated,
 	})
+	fb.negated = false
 	return fb.qb
 }
 
 func (fb *FilterBuilder) Has(value string) *QueryBuilder {
+	if value == "" {
+		return fb.qb
+	}
 	fb.qb.filters = append(fb.qb.filters, filterCond{
 		field:    fb.field,
 		operator: "has",
@@ -146,5 +154,6 @@ func (fb *FilterBuilder) Has(value string) *QueryBuilder {
 		logic:    fb.logic,
 		negated:  fb.negated,
 	})
+	fb.negated = false
 	return fb.qb
 }
