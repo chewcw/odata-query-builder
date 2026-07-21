@@ -167,6 +167,44 @@ func TestFilterHas(t *testing.T) {
 	}
 }
 
+func TestFilterWithNilOps(t *testing.T) {
+  got := New().Filter("style").Eq(nil).Build()
+  want := ""
+  if got != want {
+    t.Errorf("got %q, want %q", got, want)
+  }
+
+  got = New().Filter("style").Ne(nil).Build()
+  want = ""
+  if got != want {
+    t.Errorf("got %q, want %q", got, want)
+  }
+
+  got = New().Filter("style").Ge(nil).Build()
+  want = ""
+  if got != want {
+    t.Errorf("got %q, want %q", got, want)
+  }
+
+  got = New().Filter("style").Gt(nil).Build()
+  want = ""
+  if got != want {
+    t.Errorf("got %q, want %q", got, want)
+  }
+
+  got = New().Filter("style").Le(nil).Build()
+  want = ""
+  if got != want {
+    t.Errorf("got %q, want %q", got, want)
+  }
+
+  got = New().Filter("style").Lt(nil).Build()
+  want = ""
+  if got != want {
+    t.Errorf("got %q, want %q", got, want)
+  }
+}
+
 func TestTop(t *testing.T) {
 	got := New().Top(10).Build()
 	want := "$top=10"
