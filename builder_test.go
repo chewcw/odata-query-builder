@@ -301,3 +301,88 @@ func TestExpandDeepWithSelect(t *testing.T) {
 		t.Errorf("got %q, want %q", got, want)
 	}
 }
+
+func TestOrFilter(t *testing.T) {
+	got := New().
+		Filter("status").Eq("active").
+		OrFilter("priority").Gt(5).
+		Build()
+	want := "$filter=status eq 'active' or priority gt 5"
+	if got != want {
+		t.Errorf("got %q, want %q", got, want)
+	}
+}
+
+func TestFilterDoubleNot(t *testing.T) {
+	got := New().Filter("status").Not().Not().Eq("deleted").Build()
+	want := "$filter=status eq 'deleted'"
+	if got != want {
+		t.Errorf("got %q, want %q", got, want)
+	}
+}
+
+func TestFilterEscapedQuote(t *testing.T) {
+	got := New().Filter("name").Eq("O'Brien").Build()
+	want := "$filter=name eq 'O''Brien'"
+	if got != want {
+		t.Errorf("got %q, want %q", got, want)
+	}
+}
+
+func TestFilterFloat(t *testing.T) {
+	got := New().Filter("score").Eq(3.14).Build()
+	want := "$filter=score eq 3.14"
+	if got != want {
+		t.Errorf("got %q, want %q", got, want)
+	}
+}
+
+func TestComplexQuery(t *testing.T) {
+	got := New().
+		Select("name", "email", "age").
+		Filter("status").Eq("active").
+		Filter("age").Gt(18).
+		OrFilter("role").Eq("admin").
+		OrderBy("name").
+		OrderByDesc("age").
+		Top(25).
+		Skip(50).
+		Count().
+		Search("john").
+		Build()
+	want := "$select=name,email,age&$filter=status eq 'active' and age gt 18 or role eq 'admin'&$search=john&$orderby=name,age desc&$top=25&$skip=50&$count=true"
+	if got != want {
+		t.Errorf("got  %q\nwant %q", got, want)
+	}
+}
+
+func TestEmptySelect(t *testing.T) {
+	got := New().Select().Build()
+	if got != "" {
+		t.Errorf("expected empty, got %q", got)
+	}
+}
+
+func TestFilterEmptyValue(t *testing.T) {
+	got := New().Filter("name").Eq("").Build()
+	want := "$filter=name eq ''"
+	if got != want {
+		t.Errorf("got %q, want %q", got, want)
+	}
+}
+
+func TestFilterEmptyField(t *testing.T) {
+	got := New().Filter("").Eq("value").Build()
+	want := "$filter= eq 'value'"
+	if got != want {
+		t.Errorf("got %q, want %q", got, want)
+	}
+}
+
+func TestNegativeTopPanics(t *testing.T) {
+	got := New().Top(-1).Build()
+	want := "$top=-1"
+	if got != want {
+		t.Errorf("got %q, want %q", got, want)
+	}
+}
