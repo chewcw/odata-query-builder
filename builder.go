@@ -101,6 +101,10 @@ func (qb *QueryBuilder) Expand(prop string, nested func(*QueryBuilder)) *QueryBu
 }
 
 func (qb *QueryBuilder) Build() string {
+	return qb.build("&")
+}
+
+func (qb *QueryBuilder) build(sep string) string {
 	var parts []string
 	if len(qb.selects) > 0 {
 		parts = append(parts, "$select="+strings.Join(qb.selects, ","))
@@ -109,9 +113,9 @@ func (qb *QueryBuilder) Build() string {
 		var items []string
 		for _, e := range qb.expands {
 			if e.query != nil {
-				nested := e.query.Build()
+				nested := e.query.build(";")
 				if nested != "" {
-					items = append(items, e.property+"("+strings.ReplaceAll(nested, "&", ";")+")")
+					items = append(items, e.property+"("+nested+")")
 				} else {
 					items = append(items, e.property)
 				}
@@ -155,5 +159,5 @@ func (qb *QueryBuilder) Build() string {
 	if qb.count != nil && *qb.count {
 		parts = append(parts, "$count=true")
 	}
-	return strings.Join(parts, "&")
+	return strings.Join(parts, sep)
 }
